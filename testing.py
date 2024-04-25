@@ -6,8 +6,15 @@ from sklearn.metrics import roc_curve, auc
 import plot
 def pulsar_probability(sampled_data, weights, quantum_circuit):
     global expectation_value
-    expectation_value = [quantum_circuit.circuit(weights, feature_vector) for feature_vector in sampled_data]
-    probability_pulsar = (1 - np.array(expectation_value)) / 2
+    mean_expectation = np.array([])
+    for feature_vector in sampled_data:
+        expectation_value = quantum_circuit.circuit(weights, feature_vector)
+        expectation_value = np.mean(expectation_value)
+        mean_expectation = np.append(mean_expectation,expectation_value)
+                             
+    #expectation_value = [quantum_circuit.circuit(weights, feature_vector) for feature_vector in sampled_data]
+
+    probability_pulsar = (1 - np.array(mean_expectation)) / 2
     return probability_pulsar
 
 def most_common(predictions):
@@ -22,14 +29,13 @@ def metrics(test_data, optimized_weights, quantum_circuit,dev,set_number,title):
     start_time = time.perf_counter()
     for sample in test_data:
         feature_vector = sample[:8]  # Assuming the first 8 elements are features
-        actual_label = sample[8]  # Assuming the 9th element is the actual classification label
-        sampled_outputs = [quantum_circuit.circuit(optimized_weights, feature_vector) for _ in range(dev.shots)]
-        probability_pulsar = (1 - np.array(sampled_outputs)) / 2
-        # Binarize the probabilities to 0 or 1 based on a threshold, here 0.5
-        predicted_labels = [1 if prob > 0.5 else 0 for prob in probability_pulsar]
-        majority_label = most_common(predicted_labels)
-        predictions.append(majority_label)
-        labels.append(actual_label)  # Use the actual label from the data
+        actual_label = sample[8]     # Assuming the 9th element is the actual classification label
+        output = quantum_circuit.circuit(optimized_weights, feature_vector)
+        output = np.mean(output)
+        probability_pulsar = (1 - output) / 2  # Adjust as needed based on your circuit's output interpretation
+        predicted_label = 1 if probability_pulsar > 0.5 else 0
+        predictions.append(predicted_label)
+        labels.append(actual_label)
     
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
