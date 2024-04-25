@@ -60,7 +60,9 @@ import qcnn_train_encoding_weights
 import qcnn_test_encoding_weights #as test_circuit
 from qcnn_test_encoding_weights import dev
 title="QCNN 8 encoding weights RZ"
+np.random.seed(42)  # Set the seed
 initial_weights = 2 * np.pi * np.random.random(size=(num_sets,26))
+
 optimized_weights_third,results_third,averaged_result_third = run(train_pulsar_global, train_non_pulsar_global,test, initial_weights, qcnn_train_encoding_weights,qcnn_test_encoding_weights, title, num_sets,max_epochs,dev)
 print(averaged_result_third)
 
